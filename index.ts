@@ -1,5 +1,8 @@
+// import { multer } from 'multer'
 //backend server
 import express, { Express, Request, Response } from 'express'
+
+import multer from 'multer'
 
 //mongoDB lib
 import mongoose from 'mongoose'
@@ -25,8 +28,21 @@ mongoose
 //connect server express
 const app: Express = express()
 
+//save img to storage
+const storage = multer.diskStorage({
+	destination: (_, __, cb) => {
+		cb(null, 'uploads')
+	},
+	filename: (_, file, cb) => {
+		cb(null, file.originalname)
+	},
+})
+
+const upload = multer({ storage })
+
 //can read json request
 app.use(express.json())
+app.use('/uploads', express.static('uploads'))
 
 //route
 app.get('/', (req, res) => {
@@ -35,9 +51,7 @@ app.get('/', (req, res) => {
 
 //auth api
 app.post('/auth/register', registerValidator, UserController.register)
-
 app.post('/auth/login', loginValidator, UserController.login)
-
 app.get('/auth/me', checkAuth, UserController.getMe)
 
 //posts api
@@ -46,6 +60,12 @@ app.get('/posts/:id', checkAuth, PostController.getOne)
 app.post('/posts', checkAuth, postValidator, PostController.create)
 app.delete('/posts/:id', checkAuth, PostController.remove)
 app.patch('/posts/:id', checkAuth, PostController.update)
+
+app.post('/upload', checkAuth, upload.single('image'), (req: Request, res: Response) => {
+	res.json({
+		url: `/uploads/${req.file?.originalname}`,
+	})
+})
 
 app.listen(4444, () => {
 	// if (err) {
