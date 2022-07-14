@@ -1,14 +1,14 @@
 //backend server
-import express from 'express'
+import express, { Express, Request, Response } from 'express'
 
 //mongoDB lib
 import mongoose from 'mongoose'
 
-import { registerValidator } from './validations/auth.js'
+import { registerValidator } from './validations/auth'
 
-import checkAuth from './utils/checkAuth.js'
+import checkAuth from './utils/checkAuth'
 
-import { getMe, login, register } from './controllers/UserController.js'
+import { getMe, login, register } from './controllers/UserController'
 
 //connect MongoDB
 mongoose
@@ -21,7 +21,7 @@ mongoose
 	.catch(err => console.log('DB err'))
 
 //connect server express
-const app = express()
+const app: Express = express()
 
 //can read json request
 app.use(express.json())
@@ -37,10 +37,10 @@ app.post('/auth/login', login)
 
 app.get('/auth/me', checkAuth, getMe)
 
-app.listen(4444, err => {
-	if (err) {
-		return console.log(err)
-	}
+app.listen(4444, () => {
+	// if (err) {
+	// 	// return console.log(err)
+	// }
 
 	console.log('Server OK')
 })

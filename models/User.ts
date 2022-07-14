@@ -1,7 +1,16 @@
 import mongoose from 'mongoose'
 //User model
 // road to MVC (Model View Controler)
-const UserSchema = new mongoose.Schema(
+
+export interface IUser {
+	_id: string
+	fullName: string
+	email: string
+	passwordHash: string
+	avatarUrl?: string
+}
+
+const UserSchema = new mongoose.Schema<IUser>(
 	{
 		fullName: {
 			type: String,
@@ -23,4 +32,4 @@ const UserSchema = new mongoose.Schema(
 	}
 )
 
-export default mongoose.model('User', UserSchema)
+export default mongoose.model<IUser>('User', UserSchema)

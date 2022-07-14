@@ -1,4 +1,6 @@
-import UserModel from '../models/User.js'
+import { IUser } from './../models/User'
+import { Request, Response } from 'express'
+import UserModel from '../models/User'
 
 //hash lib
 import bcrypt from 'bcrypt'
@@ -7,7 +9,7 @@ import jwt from 'jsonwebtoken'
 
 import { validationResult } from 'express-validator'
 
-export const register = async (req, res) => {
+export const register = async (req: Request, res: Response) => {
 	try {
 		const errors = validationResult(req)
 
@@ -20,7 +22,7 @@ export const register = async (req, res) => {
 		const salt = await bcrypt.genSalt(10)
 		const hash = await bcrypt.hash(password, salt)
 
-		const doc = new UserModel({
+		const user = new UserModel({
 			email: req.body.email,
 			fullName: req.body.fullName,
 			avatarUrl: req.body.avatarUrl,
@@ -28,7 +30,7 @@ export const register = async (req, res) => {
 		})
 
 		//save user to mongoDB
-		const user = await doc.save()
+		await user.save()
 
 		const token = jwt.sign(
 			{
@@ -40,7 +42,9 @@ export const register = async (req, res) => {
 			}
 		)
 
-		const { passwordHash, ...userData } = user._doc
+		//TODO temp solution
+		//@ts-ignore
+		const { passwordHash, ...userData } = user._doc as IUser
 
 		res.json({
 			...userData,
@@ -54,7 +58,7 @@ export const register = async (req, res) => {
 	}
 }
 
-export const login = async (req, res) => {
+export const login = async (req: Request, res: Response) => {
 	try {
 		const user = await UserModel.findOne({ email: req.body.email })
 		if (!user) {
@@ -63,7 +67,7 @@ export const login = async (req, res) => {
 			})
 		}
 
-		const isValidPass = await bcrypt.compare(req.body.password, user._doc.passwordHash)
+		const isValidPass = await bcrypt.compare(req.body.password, user.passwordHash)
 
 		if (!isValidPass) {
 			return res.status(400).json({
@@ -81,7 +85,9 @@ export const login = async (req, res) => {
 			}
 		)
 
-		const { passwordHash, ...userData } = user._doc
+		//TODO temp solution
+		//@ts-ignore
+		const { passwordHash, ...userData } = user._doc as IUser
 
 		res.json({
 			...userData,
@@ -95,16 +101,18 @@ export const login = async (req, res) => {
 	}
 }
 
-export const getMe = async (req, res) => {
+export const getMe = async (req: Request, res: Response) => {
 	try {
-		const user = await UserModel.findById(req.userId)
+		const user = await UserModel.findById(req.body.userId)
 
 		if (!user) {
 			return res.status(404).json({
 				message: 'User not found',
 			})
 		}
-		const { passwordHash, ...userData } = user._doc
+		//TODO temp solution
+		//@ts-ignore
+		const { passwordHash, ...userData } = user._doc as IUser
 
 		res.json(userData)
 	} catch (error) {}
